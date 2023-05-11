@@ -1,4 +1,15 @@
 const inquirer = require('inquirer');
+const mysql = require('mysql2')
+
+const db = mysql.createConnection(
+    {
+      host: 'localhost',
+      user: 'root',
+      password: 'Qazee123!Jon183061',
+      database: 'my_company_db'
+    },
+    console.log(`Connected to the my_company_db database.`)
+  );
 
 
 const introList = ['View all departments', 'View all roles', 'View all employees', 'Add a department', 'Add a role', 'Add an employee', 'Update an employee role']
