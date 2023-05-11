@@ -2,26 +2,26 @@ const inquirer = require('inquirer');
 const mysql = require('mysql2/promise');
 
 
-class CreateDepartment{
-  constructor(name){
+class CreateDepartment {
+  constructor(name) {
     this.name = name;
   }
 }
 
-class CreateRole{
-  constructor(title, salary, department_id){
+class CreateRole {
+  constructor(title, salary, department_id) {
     this.title = title,
-    this.salary = salary,
-    this.department_id = department_id
+      this.salary = salary,
+      this.department_id = department_id
   }
 }
 
-class CreateEmployee{
-  constructor(first_name, last_name, rolee_id, manager_id){
+class CreateEmployee {
+  constructor(first_name, last_name, rolee_id, manager_id) {
     this.first_name = first_name,
-    this.last_name = last_name,
-    this.rolee_id = rolee_id,
-    this.manager_id = manager_id
+      this.last_name = last_name,
+      this.rolee_id = rolee_id,
+      this.manager_id = manager_id
   }
 }
 
@@ -38,16 +38,27 @@ const getDataBase = async () => {
   const [rolee] = await connection.query('SELECT * FROM rolee');
   const [employee] = await connection.query('SELECT * FROM employee');
 
-  await connection.end();
+  const addData = async (sqlQuery, data) => {
+    const [rows, fields] = await connection.execute(sqlQuery, [...Object.values(data)]);
+    console.log(rows)
+    console.log(fields)
+    console.log('this worked')
+  }
+  const endConnection = async () => {
+    console.log("this ran")
+    await connection.end();
+  }
+  
 
-  return { department, rolee, employee};
+  return { department, rolee, employee, addData, endConnection };
 }
 
 
 const promptUser = async () => {
-  const department = (await getDataBase()).department;
-  const rolee = (await getDataBase()).rolee;
-  const employee = (await getDataBase()).employee;
+  const db = await getDataBase();
+  const department = db.department;
+  const rolee = db.rolee;
+  const employee = db.employee;
 
 
   const departmentPrompt = department.map(row => row.name);
@@ -140,44 +151,40 @@ const promptUser = async () => {
 
   switch (promptAnswers.intro) {
     case 'View all departments':
-        console.log(department)
-        break;
+      console.log(department)
+      break;
     case 'View all roles':
-        console.log(rolee)
-        break;
+      console.log(rolee)
+      break;
     case 'View all employees':
-        console.log(employee)
-        break;
+      console.log(employee)
+      break;
     case 'Add a department':
-        const newDepartment = new CreateDepartment(promptAnswers.addDepartment);
-        console.log(newDepartment);
-        break;
+      const newDepartment = new CreateDepartment(promptAnswers.addDepartment);
+      db.addData('INSERT INTO department (name) VALUES (?)', newDepartment)
+      break;
     case 'Add a role':
-        const roleDepartment = department.filter(dep => dep.name === promptAnswers.addRoleDepartment)
-        const newRole = new CreateRole(promptAnswers.addRoleName, promptAnswers.addRoleSalary, roleDepartment[0].id)
-        console.log(newRole)
-        break;
+      const roleDepartment = department.filter(dep => dep.name === promptAnswers.addRoleDepartment)
+      const newRole = new CreateRole(promptAnswers.addRoleName, promptAnswers.addRoleSalary, roleDepartment[0].id)
+      db.addData('INSERT INTO rolee (title, salary, department_id) VALUES (?, ?, ?)', newRole)
+      break;
     case 'Add an employee':
-        const employeeRole = rolee.filter(rol => rol.title === promptAnswers.addEmployeeRole)
-        const employeeManager = employee.filter(emp => emp.first_name === promptAnswers.addEmployeeManager.split(' ')[0])
-        const newEmployee = new CreateEmployee(promptAnswers.addEmployeeFirst, promptAnswers.addEmployeeLast, employeeRole[0].id, employeeManager[0].id)
-        console.log(newEmployee)
-        break;
+      const employeeRole = rolee.filter(rol => rol.title === promptAnswers.addEmployeeRole)
+      const employeeManager = employee.filter(emp => emp.first_name === promptAnswers.addEmployeeManager.split(' ')[0])
+      const newEmployee = new CreateEmployee(promptAnswers.addEmployeeFirst, promptAnswers.addEmployeeLast, employeeRole[0].id, employeeManager[0].id)
+      db.addData('INSERT INTO employee (first_name, last_name, rolee_id, manager_id) VALUES (?, ?, ?, ?)', newEmployee)
+      break;
     case 'Update an employee role':
-        const updateEmployee = employee.filter(emp => emp.first_name === promptAnswers.updateEmployeeSelect.split(' ')[0])
-        const employeeNewRole = rolee.filter(rol => rol.title === promptAnswers.updateEmployeeRole)
-        
-        console.log(updateEmployee)
-        console.log(employeeNewRole)
-        break;
-}
+      const updateEmployee = employee.filter(emp => emp.first_name === promptAnswers.updateEmployeeSelect.split(' ')[0])
+      const employeeNewRole = rolee.filter(rol => rol.title === promptAnswers.updateEmployeeRole)
 
-
-
-  
-
-
-
+      console.log(updateEmployee[0].id)
+      console.log(employeeNewRole[0].id)
+      console.log('UPDATE employee SET rolee_id = ? WHERE id = ?')
+      db.addData('UPDATE employee SET rolee_id = ? WHERE id = ?', [employeeNewRole[0].id, updateEmployee[0].id])
+      break;
+  }
+  (await getDataBase()).endConnection()
 }
 
 promptUser();
