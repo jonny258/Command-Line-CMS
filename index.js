@@ -11,6 +11,45 @@ const db = mysql.createConnection(
     console.log(`Connected to the my_company_db database.`)
 );
 
+let departmentsArr = [];
+let roleArr;
+let employeeArr;
+
+const init = async () => {
+    // Departments
+    db.query('SELECT * FROM department', (err, results) => {
+        if (err) {
+            console.log(err)
+        } else {
+            departmentsArr = ['yoyo']
+            console.log(departmentsArr)
+        }
+    })
+    // Roles
+    db.query('SELECT * FROM rolee', (err, results) => {
+        if (err) {
+            console.log(err)
+        } else {
+            roleArr = Array.from(results).map((role) => {
+                return role.title;
+            })
+        }
+    })
+    // Employees
+    db.query('SELECT * FROM employee', (err, results) => {
+        if (err) {
+            console.log(err)
+        } else {
+            employeeArr = Array.from(results).map((employee) => {
+                return `${employee.first_name} ${employee.last_name}`
+            })
+        }
+    })
+}
+
+
+
+
 
 const introList = ['View all departments', 'View all roles', 'View all employees', 'Add a department', 'Add a role', 'Add an employee', 'Update an employee role']
 
@@ -49,12 +88,12 @@ const addDepartment = (department) => {
         name: department
     }
 
-    db.query('INSERT INTO department SET ?', newDepartment, (err, results) =>{
+    db.query('INSERT INTO department SET ?', newDepartment, (err, results) => {
         if (err) {
             console.error(err)
-          } else {
+        } else {
             console.log(`Inserted ${results.affectedRows} row(s).`)
-          }
+        }
     })
 };
 
@@ -83,107 +122,112 @@ const updateEmployee = (parameter1, parameter2) => {
     // function body
 };
 
+const questions = () => {
+    console.log(departmentsArr + 'questions')
+    console.log(roleArr + 'questions')
+    console.log(employeeArr + 'questions')
+    inquirer
+        .prompt([
+            {
+                type: 'list',
+                name: 'intro',
+                message: 'What would you like to do?',
+                choices: test('asdfaeasdf')
+            },
+            // Add Department
+            {
+                type: 'input',
+                name: 'addDepartment',
+                message: 'Enter the name of the department that you would like to add',
+                when: (answers) => answers.intro === 'Add a department'
+            },
+            // Add Role
+            {
+                type: 'input',
+                name: 'addRoleName',
+                message: 'What is the name of the role you would like to add',
+                when: (answers) => answers.intro === 'Add a role'
+            },
+            {
+                type: 'input',
+                name: 'addRoleSalary',
+                message: 'What is the salary of the role',
+                when: (answers) => answers.intro === 'Add a role'
+            },
+            {
+                type: 'list',
+                name: 'addRoleDepartment',
+                message: 'What department does this role fall under',
+                choices: departmentsArr,
+                when: (answers) => answers.intro === 'Add a role'
+            },
+            //Add Employee
+            {
+                type: 'input',
+                name: 'addEmployeeFirst',
+                message: 'Please enter your employees first name',
+                when: (answers) => answers.intro === 'Add an employee'
+            },
+            {
+                type: 'input',
+                name: 'addEmployeeLast',
+                message: 'Please enter your employees lastname',
+                when: (answers) => answers.intro === 'Add an employee'
+            },
+            {
+                type: 'input',
+                name: 'addEmployeeRole',
+                message: 'What is the role of this employee',
+                when: (answers) => answers.intro === 'Add an employee'
+            },
+            {
+                type: 'input',
+                name: 'addEmployeeManager',
+                message: 'Who is this employees manager',
+                when: (answers) => answers.intro === 'Add an employee'
+            },
+            //Update an employee role
+            {
+                type: 'list',
+                name: 'updateEmployeeSelect',
+                message: `Which employee's role do you want to update`,
+                when: (answers) => answers.intro === 'Update an employee role'
+            },
+            {
+                type: 'input',
+                name: 'updateEmployeeRole',
+                message: `what is this ${introList[0]} new role`,
+                when: (answers) => answers.intro === 'Update an employee role'
+            },
 
+        ])
+        .then((res) => {
+            switch (res.intro) {
+                case 'View all departments':
+                    viewDepartments()
+                    break;
+                case 'View all roles':
+                    viewRoles()
+                    break;
+                case 'View all employees':
+                    viewEmployees()
+                    break;
+                case 'Add a department':
+                    addDepartment(res.addDepartment)
+                    break;
+                case 'Add a role':
+                    addRole(res.addRoleName, res.addRoleSalary, res.addRoleDepartment)
+                    break;
+                case 'Add an employee':
+                    addEmployee(res.addEmployeeFirst, res.addEmployeeLast, res.addEmployeeRole, res.addEmployeeManager)
+                    break;
+                case 'Update an employee role':
+                    updateEmployee()
+                    break;
+            }
+            console.log('end of then')
+        })
+}
 
-inquirer
-    .prompt([
-        {
-            type: 'list',
-            name: 'intro',
-            message: 'What would you like to do?',
-            choices: introList
-        },
-        // Add Department
-        {
-            type: 'input',
-            name: 'addDepartment',
-            message: 'Enter the name of the department that you would like to add',
-            when: (answers) => answers.intro === 'Add a department'
-        },
-        // Add Role
-        {
-            type: 'input',
-            name: 'addRoleName',
-            message: 'What is the name of the role you would like to add',
-            when: (answers) => answers.intro === 'Add a role'
-        },
-        {
-            type: 'input',
-            name: 'addRoleSalary',
-            message: 'What is the salary of the role',
-            when: (answers) => answers.intro === 'Add a role'
-        },
-        {
-            type: 'input',
-            name: 'addRoleDepartment',
-            message: 'What department does this role fall under',
-            when: (answers) => answers.intro === 'Add a role'
-        },
-        //Add Employee
-        {
-            type: 'input',
-            name: 'addEmployeeFirst',
-            message: 'Please enter your employees first name',
-            when: (answers) => answers.intro === 'Add an employee'
-        },
-        {
-            type: 'input',
-            name: 'addEmployeeLast',
-            message: 'Please enter your employees lastname',
-            when: (answers) => answers.intro === 'Add an employee'
-        },
-        {
-            type: 'input',
-            name: 'addEmployeeRole',
-            message: 'What is the role of this employee',
-            when: (answers) => answers.intro === 'Add an employee'
-        },
-        {
-            type: 'input',
-            name: 'addEmployeeManager',
-            message: 'Who is this employees manager',
-            when: (answers) => answers.intro === 'Add an employee'
-        },
-        //Update an employee role
-        {
-            type: 'list',
-            name: 'updateEmployeeSelect',
-            message: `Which employee's role do you want to update`,
-            when: (answers) => answers.intro === 'Update an employee role'
-        },
-        {
-            type: 'input',
-            name: 'updateEmployeeRole',
-            message: `what is this ${introList[0]} new role`,
-            when: (answers) => answers.intro === 'Update an employee role'
-        },
-
-    ])
-    .then((res) => {
-        switch (res.intro) {
-            case 'View all departments': 
-                viewDepartments()
-                break;
-            case 'View all roles': 
-                viewRoles()
-                break;
-            case 'View all employees': 
-                viewEmployees()
-                break;
-            case 'Add a department': 
-                addDepartment(res.addDepartment)
-                break;
-            case 'Add a role': 
-                addRole(res.addRoleName, res.addRoleSalary, res.addRoleDepartment)
-                break;
-            case 'Add an employee': 
-                addEmployee(res.addEmployeeFirst, res.addEmployeeLast, res.addEmployeeRole, res.addEmployeeManager)
-                break;
-            case 'Update an employee role': 
-                updateEmployee()
-                break;
-        }
-        console.log('end of then')
-    })
-
+init().then(questions())
 console.log('end of page')
