@@ -3,44 +3,85 @@ const mysql = require('mysql2')
 
 const db = mysql.createConnection(
     {
-      host: 'localhost',
-      user: 'root',
-      password: 'Qazee123!Jon183061',
-      database: 'my_company_db'
+        host: 'localhost',
+        user: 'root',
+        password: 'Qazee123!Jon183061',
+        database: 'my_company_db'
     },
     console.log(`Connected to the my_company_db database.`)
-  );
+);
 
 
 const introList = ['View all departments', 'View all roles', 'View all employees', 'Add a department', 'Add a role', 'Add an employee', 'Update an employee role']
 
-const viewDepartments = (parameter1, parameter2) => {
-    // function body
-  };
+const viewDepartments = () => {
+    db.query('SELECT * FROM department', (err, results) => {
+        if (err) {
+            console.log(err)
+        } else {
+            console.log(results)
+        }
+    })
+};
 
-  const viewRoles = (parameter1, parameter2) => {
-    // function body
-  };
+const viewRoles = () => {
+    db.query('SELECT * FROM rolee', (err, results) => {
+        if (err) {
+            console.log(err)
+        } else {
+            console.log(results)
+        }
+    })
+};
 
-  const viewEmployees = (parameter1, parameter2) => {
-    // function body
-  };
+const viewEmployees = () => {
+    db.query('SELECT * FROM employee', (err, results) => {
+        if (err) {
+            console.log(err)
+        } else {
+            console.log(results)
+        }
+    })
+};
 
-  const addDepartment = (parameter1, parameter2) => {
-    // function body
-  };
+const addDepartment = (department) => {
+    const newDepartment = {
+        name: department
+    }
 
-  const addRole = (parameter1, parameter2) => {
-    // function body
-  };
+    db.query('INSERT INTO department SET ?', newDepartment, (err, results) =>{
+        if (err) {
+            console.error(err)
+          } else {
+            console.log(`Inserted ${results.affectedRows} row(s).`)
+          }
+    })
+};
 
-  const addEmployee = (parameter1, parameter2) => {
-    // function body
-  };
+const addRole = (roleName, roleSalary, roleDepartment) => {
+    const newRole = {
+        title: roleName,
+        salary: roleSalary,
+        department_id: roleDepartment //change and add validation
+    }
 
-  const updateEmployee = (parameter1, parameter2) => {
+    console.log(newRole)
+};
+
+const addEmployee = (first, last, role, manager) => {
+    const newEmployee = {
+        first_name: first,
+        last_name: last,
+        rolee_id: role, //change and add validation
+        manager_id: manager //change and add validation
+    }
+
+    console.log(newEmployee)
+};
+
+const updateEmployee = (parameter1, parameter2) => {
     // function body
-  };
+};
 
 
 
@@ -116,30 +157,33 @@ inquirer
             message: `what is this ${introList[0]} new role`,
             when: (answers) => answers.intro === 'Update an employee role'
         },
-          
+
     ])
     .then((res) => {
-        switch(res.intro) {
-            case 'View all departments' : {
+        switch (res.intro) {
+            case 'View all departments': 
                 viewDepartments()
-            }
-            case 'View all roles' : {
+                break;
+            case 'View all roles': 
                 viewRoles()
-            }
-            case 'View all employees' : {
+                break;
+            case 'View all employees': 
                 viewEmployees()
-            }
-            case 'Add a department' : {
-                addDepartment()
-            }
-            case 'Add a role' : {
-                addRole()
-            }
-            case 'Add an employee' : {
-                addEmployee()
-            }
-            case 'Update an employee role' : {
+                break;
+            case 'Add a department': 
+                addDepartment(res.addDepartment)
+                break;
+            case 'Add a role': 
+                addRole(res.addRoleName, res.addRoleSalary, res.addRoleDepartment)
+                break;
+            case 'Add an employee': 
+                addEmployee(res.addEmployeeFirst, res.addEmployeeLast, res.addEmployeeRole, res.addEmployeeManager)
+                break;
+            case 'Update an employee role': 
                 updateEmployee()
-            }
+                break;
         }
+        console.log('end of then')
     })
+
+console.log('end of page')
