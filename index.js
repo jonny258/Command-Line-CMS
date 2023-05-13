@@ -1,7 +1,8 @@
+//call required packages
 const inquirer = require('inquirer');
 const mysql = require('mysql2/promise');
 
-
+//global constructor classes to make my code cleaner in the functions
 class CreateDepartment {
   constructor(name) {
     this.name = name;
@@ -25,51 +26,53 @@ class CreateEmployee {
   }
 }
 
-
+// async function that calls the database, all actions done on the database happen in this function 
 const getDataBase = async () => {
+  // connects to sql using using the await async keyword
   const connection = await mysql.createConnection({
     host: 'localhost',
     user: 'root',
     database: 'my_company_db',
-    password: 'Qazee123!Jon183061'
+    password: ''
   });
 
+  //Pulls all the data from the three tables and then stores them in arrays
   const [department] = await connection.query('SELECT * FROM department');
   const [rolee] = await connection.query('SELECT * FROM rolee');
   const [employee] = await connection.query('SELECT * FROM employee');
 
+  //one function that updates different tables and can even update, all based on the paramiters passed into the function
   const addData = async (sqlQuery, data) => {
-    const [rows, fields] = await connection.execute(sqlQuery, [...Object.values(data)]);
+    //runs the sqlQuery with the data that is passed to in an object, the object is turned into an array with just the values in it
+    const [rows, fields] = await connection.execute(sqlQuery, [...Object.values(data)]); 
     console.log(rows)
     console.log(fields)
-    console.log('this worked')
   }
+  
+  // a function that ends the connection once the funtion is done running 
   const endConnection = async () => {
-    console.log("this ran")
     await connection.end();
   }
   
-
+  //lets all the varibles made in this function avalible in other places
   return { department, rolee, employee, addData, endConnection };
 }
 
-
+//This is the function that asks the user questions then runs various functions based on that input
 const promptUser = async () => {
+  //creates variables with easier names to make the code more readable
   const db = await getDataBase();
   const department = db.department;
   const rolee = db.rolee;
   const employee = db.employee;
 
-
+  //creates all the arrays that will be used in the prompts, 
   const departmentPrompt = department.map(row => row.name);
   const rolePrompt = rolee.map(row => row.title);
   const employeePrompt = employee.map(row => `${row.first_name} ${row.last_name}`);
   const introList = ['View all departments', 'View all roles', 'View all employees', 'Add a department', 'Add a role', 'Add an employee', 'Update an employee role']
 
-  // console.log(departmentPrompt)
-  // console.log(rolePrompt)
-  // console.log(employeePrompt)
-
+  //The function that runs the questions
   const promptAnswers = await inquirer.prompt([
     {
       type: 'list',
@@ -148,8 +151,9 @@ const promptUser = async () => {
     },
   ]);
 
-
+  //A switch case that runs different funtions based on the intro question
   switch (promptAnswers.intro) {
+    //All these just console.log a table
     case 'View all departments':
       console.log(department)
       break;
@@ -160,10 +164,12 @@ const promptUser = async () => {
       console.log(employee)
       break;
     case 'Add a department':
+      //Creates a new object then runs the sql command passing in the new object as the value to be added
       const newDepartment = new CreateDepartment(promptAnswers.addDepartment);
       db.addData('INSERT INTO department (name) VALUES (?)', newDepartment)
       break;
     case 'Add a role':
+      //because the prompt answer is just a string from an array I need to run a filter to select the correct department from the database
       const roleDepartment = department.filter(dep => dep.name === promptAnswers.addRoleDepartment)
       const newRole = new CreateRole(promptAnswers.addRoleName, promptAnswers.addRoleSalary, roleDepartment[0].id)
       db.addData('INSERT INTO rolee (title, salary, department_id) VALUES (?, ?, ?)', newRole)
@@ -177,14 +183,12 @@ const promptUser = async () => {
     case 'Update an employee role':
       const updateEmployee = employee.filter(emp => emp.first_name === promptAnswers.updateEmployeeSelect.split(' ')[0])
       const employeeNewRole = rolee.filter(rol => rol.title === promptAnswers.updateEmployeeRole)
-
-      console.log(updateEmployee[0].id)
-      console.log(employeeNewRole[0].id)
-      console.log('UPDATE employee SET rolee_id = ? WHERE id = ?')
+      //This still works even though it is different from the othe "addData" functions because all you need to pass into this function is a sql command and values
       db.addData('UPDATE employee SET rolee_id = ? WHERE id = ?', [employeeNewRole[0].id, updateEmployee[0].id])
       break;
   }
-  (await getDataBase()).endConnection()
+  //after everything is completely ran then connection to the data base is stopped
+  db.endConnection()
 }
 
 promptUser();
