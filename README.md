@@ -48,6 +48,6 @@ This project is licensed under the MIT License.
 # Demo Video
 
 <video width="640" height="360" controls>
-  <source src="DEMO_VIDEO.mp4" type="video/mp4">
+  <source src="https://drive.google.com/file/d/1DvtVI-g9n39xTRsLfjJyw2aU1k3UGvHY/view" type="video/mp4">
   Your browser does not support the video tag.
 </video>
