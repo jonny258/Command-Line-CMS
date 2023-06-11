@@ -49,7 +49,8 @@ This project is licensed under the MIT License.
 
 
 <video>
-  <source src="https://drive.google.com/file/d/1DvtVI-g9n39xTRsLfjJyw2aU1k3UGvHY/view" type="video/mp4">
+  <source src="https://drive.google.com/file/d/1DvtVI-g9n39xTRsLfjJyw2aU1k3UGvHY/view" type="video/webm">
   <!-- Add additional <source> tags for other supported video formats -->
 </video>
+
 
